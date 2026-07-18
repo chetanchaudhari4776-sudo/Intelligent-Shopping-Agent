@@ -19,7 +19,7 @@ Intelligent Shopping Agent is an AI-powered shopping assistant built using IBM w
 - JavaScript
 
   ## Project Files
-- index.html
+- intelligent.html
 - ProblemStatement11.pdf
 - ProjectPresentation.ppt
 
