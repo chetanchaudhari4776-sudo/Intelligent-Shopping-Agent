@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intelligent Shopping Agent</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --surface: #f7f8fa; --border: #e5e7eb;
+      --text: #1f2328; --muted: #57606a; --accent: #3b82d4;
+      --secondary: #7c5cd8; --accent-light: #eff6ff; --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system,"Segoe UI",system-ui,sans-serif; font-size:15px; line-height:1.6; color:var(--text); background:var(--bg); }
+<script>
+  window.wxOConfiguration = {
+    orchestrationID: "cdf7b7157d3c4983a2149d559729d7b0_b4ed11cd-e36e-40ef-82d5-1ccbccc719fd",
+    hostURL: "https://au-syd.watson-orchestrate.cloud.ibm.com",
+    rootElementID: "root",
+    deploymentPlatform: "ibmcloud",
+    crn: "crn:v1:bluemix:public:watsonx-orchestrate:au-syd:a/cdf7b7157d3c4983a2149d559729d7b0:b4ed11cd-e36e-40ef-82d5-1ccbccc719fd::",
+    chatOptions: {
+        agentId: "e14c6d5d-dd5a-479a-ab16-296ff5901784", 
+    }
+  };
+  setTimeout(function () {
+    const script = document.createElement('script');
+    script.src = `${window.wxOConfiguration.hostURL}/wxochat/wxoLoader.js?embed=true`;
+    script.addEventListener('load', function () {
+        wxoLoader.init();
+    });
+    document.head.appendChild(script);
+  }, 0);                     
+</script>
+
+    /* ── NAV ── */
+    nav { position:sticky; top:0; z-index:200; background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); padding:0 24px; }
+    .nav-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:60px; }
+    .nav-logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; color:var(--text); text-decoration:none; }
+    .nav-logo .logo-icon { width:34px; height:34px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; }
+    .nav-links { display:flex; gap:28px; list-style:none; }
+    .nav-links a { color:var(--muted); text-decoration:none; font-size:14px; font-weight:500; transition:color .2s; }
+    .nav-links a:hover { color:var(--accent); }
+    .nav-cta { background:var(--accent); color:#fff !important; padding:7px 18px; border-radius:8px; font-weight:600 !important; }
+    .nav-cta:hover { background:#2563c0 !important; }
+    .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
+    .hamburger span { display:block; width:22px; height:2px; background:var(--text); border-radius:2px; }
+
+    /* ── HERO ── */
+    .hero { background:var(--surface); border-bottom:1px solid var(--border); padding:80px 24px 72px; text-align:center; }
+    .hero-badge { display:inline-flex; align-items:center; gap:6px; background:var(--accent-light); color:var(--accent); border:1px solid #bfdbfe; border-radius:20px; font-size:12px; font-weight:600; padding:4px 12px; margin-bottom:24px; text-transform:uppercase; letter-spacing:.05em; }
+    .hero h1 { font-size:clamp(2rem,5vw,3.4rem); font-weight:800; line-height:1.15; letter-spacing:-.02em; max-width:700px; margin:0 auto 20px; }
+    .hero h1 span { color:var(--accent); }
+    .hero > p { font-size:17px; color:var(--muted); max-width:540px; margin:0 auto 36px; line-height:1.7; }
+    .hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:48px; }
+    .btn-primary { background:var(--accent); color:#fff; padding:13px 28px; border-radius:10px; font-weight:700; font-size:15px; text-decoration:none; border:none; cursor:pointer; transition:background .2s,transform .15s; display:inline-block; }
+    .btn-primary:hover { background:#2563c0; transform:translateY(-1px); }
+    .btn-outline { background:transparent; color:var(--text); padding:13px 28px; border-radius:10px; font-weight:600; font-size:15px; text-decoration:none; border:1.5px solid var(--border); cursor:pointer; transition:border-color .2s,transform .15s; display:inline-block; }
+    .btn-outline:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+    .hero-search { max-width:600px; margin:0 auto; background:#fff; border:1.5px solid var(--border); border-radius:12px; display:flex; align-items:center; padding:10px 16px; box-shadow:var(--shadow); gap:10px; }
+    .hero-search input { flex:1; border:none; outline:none; font-size:15px; color:var(--text); font-family:inherit; }
+    .hero-search input::placeholder { color:#b0b7c3; }
+    .search-btn { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:8px 18px; font-weight:600; font-size:14px; cursor:pointer; font-family:inherit; transition:background .2s; }
+    .search-btn:hover { background:#2563c0; }
+    .search-result { max-width:600px; margin:16px auto 0; background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 18px; text-align:left; display:none; box-shadow:var(--shadow); }
+    .search-result.visible { display:block; }
+    .sr-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin-bottom:8px; }
+    .sr-products { display:flex; flex-direction:column; gap:8px; }
+    .sr-product { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; background:var(--surface); font-size:13px; }
+    .sr-product .name { font-weight:600; }
+    .sr-product .meta { color:var(--muted); font-size:12px; margin-top:1px; }
+    .sr-product .price { font-weight:700; color:var(--accent); font-size:14px; }
+    .sr-best { border:1.5px solid var(--accent) !important; background:var(--accent-light) !important; }
+    .best-tag { font-size:10px; font-weight:700; background:var(--accent); color:#fff; border-radius:4px; padding:1px 6px; margin-left:6px; text-transform:uppercase; }
+
+    /* ── STATS ── */
+    .stats { padding:40px 24px; border-bottom:1px solid var(--border); }
+    .stats-inner { max-width:900px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:24px; text-align:center; }
+    .stat-num { font-size:2rem; font-weight:800; color:var(--accent); letter-spacing:-.02em; }
+    .stat-label { font-size:13px; color:var(--muted); margin-top:2px; }
+
+    /* ── SECTION SHELL ── */
+    section { padding:72px 24px; }
+    section:nth-child(even) { background:var(--surface); }
+    .section-max { max-width:1100px; margin:0 auto; }
+    .section-header { text-align:center; margin-bottom:52px; }
+    .section-eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--accent); margin-bottom:10px; }
+    .section-header h2 { font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; letter-spacing:-.02em; margin-bottom:12px; }
+    .section-header p { color:var(--muted); max-width:500px; margin:0 auto; font-size:15px; }
+
+    /* ── FEATURES ── */
+    .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+    .feature-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:28px 26px; transition:box-shadow .2s,border-color .2s,transform .2s; }
+    .feature-card:hover { box-shadow:0 8px 24px rgba(59,130,212,.1); border-color:#bfdbfe; transform:translateY(-3px); }
+    .feature-icon { width:44px; height:44px; border-radius:10px; background:var(--accent-light); display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+    .feature-icon svg { width:22px; height:22px; color:var(--accent); }
+    .feature-card h3 { font-size:15px; font-weight:700; margin-bottom:8px; }
+    .feature-card p { font-size:14px; color:var(--muted); line-height:1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; }
+    .step { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:28px 24px; text-align:center; }
+    .step-num { width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+    .step h3 { font-size:15px; font-weight:700; margin-bottom:8px; }
+    .step p { font-size:13px; color:var(--muted); }
+
+    /* ── TABLE ── */
+    .compare-wrapper { overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:14px; min-width:560px; }
+    thead { background:var(--accent); color:#fff; }
+    thead th { padding:14px 18px; text-align:left; font-weight:700; font-size:13px; }
+    tbody tr { border-bottom:1px solid var(--border); }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:nth-child(even) { background:var(--surface); }
+    tbody td { padding:12px 18px; }
+    .tag-best { background:#dcfce7; color:#166534; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; }
+    .tag-ok   { background:#fef9c3; color:#854d0e; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; }
+    .tag-low  { background:#fee2e2; color:#991b1b; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+    .testimonial-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:26px; transition:box-shadow .2s; }
+    .testimonial-card:hover { box-shadow:var(--shadow); }
+    .stars { color:#f59e0b; font-size:14px; margin-bottom:12px; letter-spacing:2px; }
+    .testimonial-card blockquote { font-size:14px; color:var(--text); line-height:1.7; margin-bottom:18px; font-style:italic; }
+    .testimonial-author { display:flex; align-items:center; gap:10px; }
+    .avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
+    .author-name { font-weight:700; font-size:13px; }
+    .author-role { font-size:12px; color:var(--muted); }
+
+    /* ── PRICING ── */
+    .pricing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; max-width:860px; margin:0 auto; }
+    .pricing-card { background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:32px 28px; text-align:center; transition:box-shadow .2s,transform .2s; position:relative; }
+    .pricing-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.08); transform:translateY(-4px); }
+    .pricing-card.featured { border-color:var(--accent); box-shadow:0 4px 20px rgba(59,130,212,.15); }
+    .featured-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:11px; font-weight:700; padding:3px 12px; border-radius:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .plan-name { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+    .plan-price { font-size:2.4rem; font-weight:800; color:var(--text); letter-spacing:-.03em; }
+    .plan-price span { font-size:15px; font-weight:500; color:var(--muted); }
+    .plan-desc { font-size:13px; color:var(--muted); margin:10px 0 22px; }
+    .plan-features { list-style:none; text-align:left; margin-bottom:28px; }
+    .plan-features li { font-size:13px; padding:5px 0; display:flex; align-items:center; gap:8px; }
+    .plan-features li::before { content:""; width:16px; height:16px; flex-shrink:0; border-radius:50%; background:var(--accent-light); border:1.5px solid var(--accent); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%233b82d4'%3E%3Cpath d='M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z'/%3E%3C/svg%3E"); background-size:10px; background-repeat:no-repeat; background-position:center; }
+    .plan-features li.muted-feat { color:var(--muted); }
+    .plan-features li.muted-feat::before { background:#f3f4f6; border-color:var(--border); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23b0b7c3'%3E%3Cpath d='M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E"); background-size:8px; background-repeat:no-repeat; background-position:center; }
+
+    /* ── CTA STRIP ── */
+    .cta-strip { background:var(--accent); color:#fff; padding:56px 24px; text-align:center; }
+    .cta-strip h2 { font-size:clamp(1.4rem,3vw,2rem); font-weight:800; margin-bottom:12px; }
+    .cta-strip p { opacity:.85; margin-bottom:28px; font-size:15px; }
+    .btn-white { background:#fff; color:var(--accent); padding:13px 30px; border-radius:10px; font-weight:700; font-size:15px; text-decoration:none; display:inline-block; transition:transform .15s; border:none; cursor:pointer; }
+    .btn-white:hover { transform:translateY(-2px); }
+
+    /* ── FAQ ── */
+    .faq-list { max-width:680px; margin:0 auto; }
+    .faq-item { border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+    .faq-q { padding:16px 20px; font-weight:600; font-size:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:var(--bg); transition:background .2s; user-select:none; }
+    .faq-q:hover { background:var(--surface); }
+    .faq-q .faq-arrow { width:18px; height:18px; flex-shrink:0; transition:transform .25s; color:var(--muted); }
+    .faq-item.open .faq-arrow { transform:rotate(180deg); }
+    .faq-a { max-height:0; overflow:hidden; transition:max-height .3s ease,padding .2s; padding:0 20px; background:var(--surface); }
+    .faq-item.open .faq-a { max-height:200px; padding:14px 20px 16px; }
+    .faq-a p { font-size:14px; color:var(--muted); line-height:1.7; }
+
+    /* ── FOOTER ── */
+    footer { background:var(--text); color:#e5e7eb; padding:48px 24px 28px; }
+    .footer-inner { max-width:1100px; margin:0 auto; }
+    .footer-top { display:grid; grid-template-columns:2fr repeat(3,1fr); gap:36px; margin-bottom:40px; }
+    .footer-brand .logo-text { font-weight:700; font-size:16px; color:#fff; margin-bottom:10px; }
+    .footer-brand p { font-size:13px; color:#9ca3af; line-height:1.65; }
+    .footer-col h4 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:14px; }
+    .footer-col ul { list-style:none; }
+    .footer-col ul li { margin-bottom:8px; }
+    .footer-col ul li a { color:#d1d5db; text-decoration:none; font-size:13px; transition:color .2s; }
+    .footer-col ul li a:hover { color:#fff; }
+    .footer-bottom { border-top:1px solid #374151; padding-top:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+    .footer-bottom p { font-size:12px; color:#6b7280; }
+    .footer-links { display:flex; gap:20px; }
+    .footer-links a { font-size:12px; color:#6b7280; text-decoration:none; }
+    .footer-links a:hover { color:#9ca3af; }
+    .made-with { text-align:center; font-size:12px; color:#6b7280; margin-top:16px; border-top:1px solid #374151; padding-top:16px; }
+
+    /* ═══════════════════════
+       CHATBOT
+    ═══════════════════════ */
+    #chat-fab {
+      position:fixed; bottom:28px; right:28px; z-index:9999;
+      width:58px; height:58px; border-radius:50%;
+      background:var(--accent); border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 20px rgba(59,130,212,.5);
+      transition:transform .2s,box-shadow .2s;
+    }
+    #chat-fab:hover { transform:scale(1.08); box-shadow:0 6px 28px rgba(59,130,212,.6); }
+    .chat-notif {
+      position:absolute; top:-4px; right:-4px;
+      width:18px; height:18px; border-radius:50%;
+      background:#ef4444; color:#fff; font-size:10px; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+      border:2px solid #fff; pointer-events:none;
+    }
+    #chat-window {
+      position:fixed; bottom:100px; right:28px; z-index:9998;
+      width:360px; max-width:calc(100vw - 40px);
+      background:#fff; border-radius:16px;
+      box-shadow:0 16px 48px rgba(0,0,0,.16);
+      border:1px solid var(--border);
+      display:flex; flex-direction:column; overflow:hidden;
+      transform:translateY(20px) scale(.96);
+      opacity:0; pointer-events:none;
+      transition:transform .25s ease,opacity .25s ease;
+    }
+    #chat-window.open { transform:translateY(0) scale(1); opacity:1; pointer-events:all; }
+    .chat-header { background:var(--accent); padding:14px 18px; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+    .chat-avatar { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .chat-header-info { flex:1; }
+    .chat-header-info .chat-name { font-weight:700; font-size:14px; color:#fff; }
+    .chat-status { font-size:12px; color:rgba(255,255,255,.8); display:flex; align-items:center; gap:5px; }
+    .chat-status-dot { width:7px; height:7px; border-radius:50%; background:#4ade80; display:inline-block; }
+    .chat-close-btn { background:none; border:none; cursor:pointer; color:rgba(255,255,255,.8); padding:4px; border-radius:6px; transition:background .2s; display:flex; align-items:center; }
+    .chat-close-btn:hover { background:rgba(255,255,255,.15); color:#fff; }
+    .chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:360px; min-height:220px; scroll-behavior:smooth; }
+    .chat-messages::-webkit-scrollbar { width:4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:4px; }
+    .msg { display:flex; gap:8px; align-items:flex-end; }
+    .msg.user { flex-direction:row-reverse; }
+    .msg-av { width:28px; height:28px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; font-weight:700; color:#fff; }
+    .msg.user .msg-av { background:#e5e7eb; color:var(--muted); }
+    .msg-wrap { max-width:78%; display:flex; flex-direction:column; }
+    .msg-bubble { padding:10px 13px; border-radius:14px; font-size:13px; line-height:1.55; background:var(--surface); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; white-space:pre-line; }
+    .msg.user .msg-bubble { background:var(--accent); color:#fff; border-color:var(--accent); border-bottom-left-radius:14px; border-bottom-right-radius:4px; }
+    .msg-time { font-size:10px; color:var(--muted); margin-top:3px; }
+    .msg.user .msg-time { text-align:right; }
+    .typing-indicator { display:flex; gap:5px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:14px; border-bottom-left-radius:4px; width:fit-content; }
+    .typing-dot { width:7px; height:7px; border-radius:50%; background:#b0b7c3; animation:tdot 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay:.2s; }
+    .typing-dot:nth-child(3) { animation-delay:.4s; }
+    @keyframes tdot { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+    .quick-replies { display:flex; flex-wrap:wrap; gap:6px; padding:4px 14px 12px; }
+    .qr-btn { background:var(--accent-light); color:var(--accent); border:1px solid #bfdbfe; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:background .2s; }
+    .qr-btn:hover { background:#dbeafe; }
+    .chat-input-row { border-top:1px solid var(--border); padding:12px 14px; display:flex; gap:8px; align-items:flex-end; flex-shrink:0; }
+    #chatInput { flex:1; border:1.5px solid var(--border); border-radius:10px; padding:9px 13px; font-size:13px; font-family:inherit; outline:none; resize:none; max-height:90px; min-height:38px; line-height:1.5; color:var(--text); transition:border-color .2s; }
+    #chatInput:focus { border-color:var(--accent); }
+    #chatSend { width:38px; height:38px; border-radius:9px; background:var(--accent); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .2s,transform .15s; }
+    #chatSend:hover { background:#2563c0; transform:scale(1.05); }
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .nav-links { display:none; }
+      .nav-links.open { display:flex; flex-direction:column; position:absolute; top:60px; left:0; right:0; background:#fff; padding:16px 24px 20px; border-bottom:1px solid var(--border); gap:14px; z-index:199; }
+      .hamburger { display:flex; }
+      nav { position:relative; }
+      .footer-top { grid-template-columns:1fr 1fr; }
+      #chat-window { right:16px; width:calc(100vw - 32px); bottom:90px; }
+      #chat-fab { bottom:20px; right:20px; }
+    }
+    @media(max-width:480px){
+      .footer-top { grid-template-columns:1fr; }
+      .footer-bottom { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </div>
+      ShopAI
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#compare">Compare</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#get-started" class="nav-cta">Get Started</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-badge">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2Z"/></svg>
+    AI-Powered Shopping Intelligence
+  </div>
+  <h1>Shop Smarter with Your <span>Intelligent Agent</span></h1>
+  <p>Stop overpaying. Let AI compare prices, track deals, predict discounts, and find the exact product you need — in seconds.</p>
+  <div class="hero-actions">
+    <a href="#get-started" class="btn-primary">Start for Free</a>
+    <a href="#how-it-works" class="btn-outline">See How It Works</a>
+  </div>
+  <div class="hero-search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder='Try "Sony WH-1000XM5 headphones"…' />
+    <button class="search-btn" id="searchBtn">Search</button>
+  </div>
+  <div class="search-result" id="searchResult">
+    <div class="sr-label">AI Found Best Deals Across 40+ Stores</div>
+    <div class="sr-products" id="srProducts"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div><div class="stat-num" data-target="40">0</div><div class="stat-label">Stores Monitored</div></div>
+    <div><div class="stat-num" data-target="2400000">0</div><div class="stat-label">Products Tracked</div></div>
+    <div><div class="stat-num" data-target="31">0</div><div class="stat-label">Avg. % Saved</div></div>
+    <div><div class="stat-num" data-target="850000">0</div><div class="stat-label">Happy Shoppers</div></div>
+    <div><div class="stat-num" data-target="99">0</div><div class="stat-label">% Uptime</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">Features</div>
+      <h2>Everything You Need to Shop Intelligently</h2>
+      <p>A complete AI toolkit designed to save your time, money, and decision fatigue.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/></svg></div>
+        <h3>Real-Time Price Comparison</h3>
+        <p>Instantly compare prices across Amazon, eBay, Walmart, Best Buy, and 36 more major retailers at once.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3>Price History &amp; Trends</h3>
+        <p>View historical price charts so you always know if today's deal is genuinely good or just marketing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3>Drop Alerts</h3>
+        <p>Set your target price and get instant notifications the moment a product drops to your budget.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg></div>
+        <h3>AI Deal Scoring</h3>
+        <p>Our model rates every deal 0–100 based on discount depth, review sentiment, return policy, and seller trust.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></div>
+        <h3>Review Summarizer</h3>
+        <p>NLP-powered summaries of thousands of user reviews in three bullet points — pros, cons, and verdict.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Coupon &amp; Cashback Stacking</h3>
+        <p>Automatically discovers and applies the best coupon codes plus cashback portals for maximum savings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">How It Works</div>
+      <h2>From Search to Savings in 4 Steps</h2>
+      <p>Our agent does the heavy lifting so you can focus on the decision, not the research.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Tell Us What You Need</h3><p>Enter a product name, describe what you're looking for, or paste a link — plain English works.</p></div>
+      <div class="step"><div class="step-num">2</div><h3>AI Scans the Market</h3><p>Our agent queries 40+ stores in real time, fetching live prices, stock levels, and promotions.</p></div>
+      <div class="step"><div class="step-num">3</div><h3>Ranked Results Delivered</h3><p>Products are scored and ranked by value — not ads. Best deals bubble to the top automatically.</p></div>
+      <div class="step"><div class="step-num">4</div><h3>Buy with Confidence</h3><p>Click through to the best deal knowing you're getting the lowest verified price available today.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section id="compare">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">Live Comparison Demo</div>
+      <h2>See the Agent in Action</h2>
+      <p>A sample comparison our AI ran for "Sony WH-1000XM5" across top retailers.</p>
+    </div>
+    <div class="compare-wrapper">
+      <table>
+        <thead><tr><th>Retailer</th><th>Price</th><th>Shipping</th><th>Stock</th><th>AI Score</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Amazon</strong></td><td><strong>$279.99</strong></td><td>Free (Prime)</td><td>In Stock</td><td>94 / 100</td><td><span class="tag-best">Best Deal</span></td></tr>
+          <tr><td>Best Buy</td><td>$299.99</td><td>Free</td><td>In Stock</td><td>81 / 100</td><td><span class="tag-ok">Good</span></td></tr>
+          <tr><td>Walmart</td><td>$289.00</td><td>$5.99</td><td>Limited</td><td>76 / 100</td><td><span class="tag-ok">Good</span></td></tr>
+          <tr><td>B&amp;H Photo</td><td>$319.95</td><td>Free</td><td>In Stock</td><td>68 / 100</td><td><span class="tag-low">Overpriced</span></td></tr>
+          <tr><td>Target</td><td>$309.99</td><td>Free over $35</td><td>In Stock</td><td>71 / 100</td><td><span class="tag-low">Overpriced</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">Testimonials</div>
+      <h2>Shoppers Love ShopAI</h2>
+      <p>Real stories from people who ditched tab-switching and started saving.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"I saved $140 on a new laptop within the first week. The price history chart alone is worth it — I could see I was about to buy at a 3-month high."</blockquote>
+        <div class="testimonial-author"><div class="avatar" style="background:#3b82d4">JR</div><div><div class="author-name">Jamie R.</div><div class="author-role">Freelance Designer</div></div></div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"The review summarizer is a game-changer. I used to spend 45 minutes reading reviews. Now I get the gist in 10 seconds and make better decisions."</blockquote>
+        <div class="testimonial-author"><div class="avatar" style="background:#7c5cd8">MK</div><div><div class="author-name">Marcus K.</div><div class="author-role">Software Engineer</div></div></div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"Set a drop alert for an air fryer at $79. Got the notification three weeks later. Bought it instantly. Simple, reliable, and it actually works."</blockquote>
+        <div class="testimonial-author"><div class="avatar" style="background:#059669">AP</div><div><div class="author-name">Aisha P.</div><div class="author-role">Teacher</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">Pricing</div>
+      <h2>Simple, Transparent Plans</h2>
+      <p>No hidden fees. Cancel anytime. Save far more than you spend.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0 <span>/ month</span></div>
+        <div class="plan-desc">Great for casual shoppers</div>
+        <ul class="plan-features">
+          <li>10 searches per day</li><li>Compare up to 10 stores</li><li>Basic price history (30 days)</li><li>3 active drop alerts</li>
+          <li class="muted-feat">AI Deal Scoring</li><li class="muted-feat">Review Summarizer</li><li class="muted-feat">Coupon Stacking</li>
+        </ul>
+        <a href="#" class="btn-outline" style="display:block;text-align:center">Get Started Free</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="featured-badge">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$9 <span>/ month</span></div>
+        <div class="plan-desc">For serious deal hunters</div>
+        <ul class="plan-features">
+          <li>Unlimited searches</li><li>All 40+ stores</li><li>Full price history (2 years)</li><li>Unlimited drop alerts</li>
+          <li>AI Deal Scoring</li><li>Review Summarizer</li><li>Coupon Stacking</li>
+        </ul>
+        <a href="#" class="btn-primary" style="display:block;text-align:center">Start Pro — $9/mo</a>
+      </div>
+      <div class="pricing-card">
+        <div class="plan-name">Team</div>
+        <div class="plan-price">$29 <span>/ month</span></div>
+        <div class="plan-desc">For households &amp; small teams</div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li><li>Up to 5 members</li><li>Shared watchlists</li><li>Bulk product import (CSV)</li>
+          <li>Priority email support</li><li>API access (1000 req/day)</li><li>Custom alert rules</li>
+        </ul>
+        <a href="#" class="btn-outline" style="display:block;text-align:center">Start Team Plan</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-strip" id="get-started">
+  <h2>Start Saving Today — It's Free</h2>
+  <p>Join 850,000+ shoppers already using AI to pay less for the things they love.</p>
+  <a href="#" class="btn-white">Create Your Free Account</a>
+</div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-max">
+    <div class="section-header">
+      <div class="section-eyebrow">FAQ</div>
+      <h2>Frequently Asked Questions</h2>
+      <p>Everything you need to know before you start.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">How does ShopAI fetch live prices? <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Our agent uses official retailer APIs, affiliate data feeds, and real-time web crawlers to pull current prices every few minutes across 40+ stores.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is my personal data or purchase history shared? <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>No. ShopAI never accesses your retailer accounts. Your data is encrypted at rest and never sold to third parties.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How do you make money on the free plan? <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>We earn a small affiliate commission from retailers when you click through and purchase. This never affects deal rankings.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I cancel my Pro or Team plan anytime? <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Yes, cancel anytime from account settings. You'll keep access until the end of your billing period with no cancellation fees.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Does ShopAI work outside the United States? <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div class="faq-a"><p>Currently we cover the US, UK, Canada, and Australia with store coverage expanding monthly. Currency conversion is included for all supported regions.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo-text">ShopAI — Intelligent Shopping Agent</div>
+        <p>AI-powered price intelligence that helps you shop smarter, save more, and stress less every day.</p>
+      </div>
+      <div class="footer-col"><h4>Product</h4><ul><li><a href="#">Features</a></li><li><a href="#">Pricing</a></li><li><a href="#">Browser Extension</a></li><li><a href="#">Mobile App</a></li><li><a href="#">API Access</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Press</a></li><li><a href="#">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">Affiliate Disclosure</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 ShopAI Inc. All rights reserved.</p>
+      <div class="footer-links"><a href="#">Twitter / X</a><a href="#">LinkedIn</a><a href="#">GitHub</a></div>
+    </div>
+    <div class="made-with">Made with IBM Bob</div>
+  </div>
+</footer>
+
+<!-- CHATBOT WIDGET -->
+<button id="chat-fab" aria-label="Open shopping assistant">
+  <span class="chat-notif" id="chatNotif">1</span>
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+
+<div id="chat-window" role="dialog" aria-label="ShopAI Chat Assistant">
+  <div class="chat-header">
+    <div class="chat-avatar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </div>
+    <div class="chat-header-info">
+      <div class="chat-name">ShopAI Assistant</div>
+      <div class="chat-status"><span class="chat-status-dot"></span> Online &middot; Replies instantly</div>
+    </div>
+    <button class="chat-close-btn" id="chatClose" aria-label="Close chat">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="quick-replies" id="quickReplies">
+    <button class="qr-btn" data-msg="Find best deal">Find best deal</button>
+    <button class="qr-btn" data-msg="Track a price">Track a price</button>
+    <button class="qr-btn" data-msg="How does it work">How does it work?</button>
+    <button class="qr-btn" data-msg="Pricing plans">Pricing plans</button>
+  </div>
+  <div class="chat-input-row">
+    <textarea id="chatInput" rows="1" placeholder="Ask me anything about deals…"></textarea>
+    <button id="chatSend" aria-label="Send message">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Mobile nav ── */
+  var hamburger = document.getElementById('hamburger');
+  var navLinks  = document.getElementById('navLinks');
+  hamburger.addEventListener('click', function () { navLinks.classList.toggle('open'); });
+  navLinks.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () { navLinks.classList.remove('open'); });
+  });
+
+  /* ── FAQ accordion ── */
+  document.querySelectorAll('.faq-q').forEach(function (q) {
+    q.addEventListener('click', function () {
+      var item   = q.parentElement;
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function (i) { i.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  /* ── Stat counter ── */
+  var statEls = document.querySelectorAll('.stat-num[data-target]');
+  function animateStats() {
+    statEls.forEach(function (el) {
+      var target = +el.dataset.target;
+      var isMega = target >= 1000000;
+      var isKilo = !isMega && target >= 1000;
+      var startTs = null;
+      function step(ts) {
+        if (!startTs) startTs = ts;
+        var p    = Math.min((ts - startTs) / 1800, 1);
+        var ease = 1 - Math.pow(1 - p, 3);
+        var val  = Math.floor(ease * target);
+        el.textContent = isMega ? (val / 1000000).toFixed(1) + 'M'
+                       : isKilo ? Math.floor(val / 1000) + 'K'
+                       : val;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  var statsObs = new IntersectionObserver(function (entries) {
+    if (entries[0].isIntersecting) { animateStats(); statsObs.disconnect(); }
+  }, { threshold: 0.4 });
+  statsObs.observe(document.querySelector('.stats'));
+
+  /* ── Hero search demo ── */
+  var searchInput  = document.getElementById('searchInput');
+  var searchBtn    = document.getElementById('searchBtn');
+  var searchResult = document.getElementById('searchResult');
+  var srProducts   = document.getElementById('srProducts');
+  var demoData = {
+    headphones: [
+      { retailer:'Amazon',   price:'$279.99', shipping:'Free (Prime)', score:94, best:true  },
+      { retailer:'Walmart',  price:'$289.00', shipping:'$5.99',        score:76, best:false },
+      { retailer:'Best Buy', price:'$299.99', shipping:'Free',         score:81, best:false }
+    ],
+    laptop: [
+      { retailer:'Newegg',   price:'$849.00', shipping:'Free', score:91, best:true  },
+      { retailer:'Amazon',   price:'$879.99', shipping:'Free', score:85, best:false },
+      { retailer:'Best Buy', price:'$899.99', shipping:'Free', score:78, best:false }
+    ],
+    tv: [
+      { retailer:'Costco',   price:'$529.99', shipping:'Free', score:96, best:true  },
+      { retailer:'Amazon',   price:'$579.00', shipping:'Free', score:82, best:false },
+      { retailer:'Target',   price:'$599.99', shipping:'Free', score:71, best:false }
+    ]
+  };
+  function runSearch() {
+    var q    = searchInput.value.toLowerCase();
+    var data = (q.includes('laptop') || q.includes('mac') || q.includes('notebook')) ? demoData.laptop
+             : (q.includes('tv') || q.includes('oled') || q.includes('television'))  ? demoData.tv
+             : demoData.headphones;
+    srProducts.innerHTML = data.map(function (d) {
+      return '<div class="sr-product' + (d.best ? ' sr-best' : '') + '">'
+        + '<div><div class="name">' + d.retailer + (d.best ? '<span class="best-tag">Best</span>' : '') + '</div>'
+        + '<div class="meta">Shipping: ' + d.shipping + ' &middot; AI Score: ' + d.score + '/100</div></div>'
+        + '<div class="price">' + d.price + '</div></div>';
+    }).join('');
+    searchResult.classList.add('visible');
+  }
+  searchBtn.addEventListener('click', runSearch);
+  searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') runSearch(); });
+
+  /* ── Scroll reveal ── */
+  var revealEls = document.querySelectorAll('.feature-card,.step,.testimonial-card,.pricing-card');
+  revealEls.forEach(function (el) {
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(18px)';
+    el.style.transition = 'opacity .45s ease, transform .45s ease';
+  });
+  var ro = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        e.target.style.opacity   = '1';
+        e.target.style.transform = 'translateY(0)';
+        ro.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(function (el) { ro.observe(el); });
+
+  /* ════════════════════════════
+     CHATBOT
+  ════════════════════════════ */
+  var chatFab      = document.getElementById('chat-fab');
+  var chatWindow   = document.getElementById('chat-window');
+  var chatClose    = document.getElementById('chatClose');
+  var chatMessages = document.getElementById('chatMessages');
+  var chatInput    = document.getElementById('chatInput');
+  var chatSend     = document.getElementById('chatSend');
+  var quickReplies = document.getElementById('quickReplies');
+  var chatNotif    = document.getElementById('chatNotif');
+  var chatOpen     = false;
+  var greeted      = false;
+
+  function openChat() {
+    chatOpen = true;
+    chatWindow.classList.add('open');
+    chatNotif.style.display = 'none';
+    setTimeout(function () { chatInput.focus(); }, 250);
+    if (!greeted) {
+      greeted = true;
+      showTyping();
+      setTimeout(function () {
+        hideTyping();
+        appendMsg("Hey! I'm your ShopAI Assistant.\n\nI can help you find the best deals, set price alerts, compare products, or answer any questions about ShopAI.\n\nWhat are you shopping for today?", false);
+      }, 900);
+    }
+  }
+
+  function closeChat() {
+    chatOpen = false;
+    chatWindow.classList.remove('open');
+  }
+
+  chatFab.addEventListener('click',  function () { chatOpen ? closeChat() : openChat(); });
+  chatClose.addEventListener('click', closeChat);
+
+  /* Close when clicking outside */
+  document.addEventListener('click', function (e) {
+    if (chatOpen && !chatWindow.contains(e.target) && e.target !== chatFab && !chatFab.contains(e.target)) {
+      closeChat();
+    }
+  });
+
+  /* ── Bot reply rules ── */
+  var rules = [
+    { keys:['hello','hi ','hey','greet','morning','afternoon','evening','howdy'],
+      reply:"Hi there! I'm your ShopAI Assistant. I can help you find deals, track prices, or choose a plan.\n\nWhat are you shopping for today?" },
+    { keys:['best deal','find deal','cheap','cheapest','lowest price','compare','price compare','search'],
+      reply:"Just tell me the product name and I'll compare prices across 40+ stores instantly!\n\nYou can also use the search bar at the top of the page right now. Try typing 'Sony headphones' or 'laptop' to see it in action." },
+    { keys:['track','alert','notify','watch','price drop','drop alert','set alert','price alert'],
+      reply:"Price drop alerts are easy to set up:\n\n1. Search for your product\n2. Click 'Set Alert' on any result\n3. Enter your target price\n4. We notify you by email or push the moment it drops!\n\nFree plan: 3 alerts. Pro plan: unlimited alerts." },
+    { keys:['review','summarize','summary','pros','cons','verdict','opinion'],
+      reply:"Our AI Review Summarizer reads thousands of reviews and gives you:\n\n  Pros — what people love\n  Cons — common complaints\n  Verdict — overall recommendation\n\nAvailable on Pro and Team plans." },
+    { keys:['coupon','code','cashback','promo','voucher','discount code','stack'],
+      reply:"Our Coupon & Cashback Stacker automatically:\n\n  Finds the best promo codes\n  Stacks eligible cashback portals\n  Shows the final 'true cost'\n\nOn average users save an extra 8-12% on top of the lowest price!" },
+    { keys:['score','ai score','deal score','rank','rating','how is it scored'],
+      reply:"Our AI Deal Score (0-100) rates each deal on:\n\n  Discount vs. 90-day price history\n  Seller trust & return policy\n  Review sentiment\n  Shipping speed & cost\n\n90+ = exceptional, 70-89 = good, below 70 = consider waiting." },
+    { keys:['how does','how it work','how do you','what is shopai','explain','tell me about'],
+      reply:"ShopAI works in 4 simple steps:\n\n1. Tell us what you need (name, link, or plain English)\n2. We query 40+ stores in real time\n3. Results ranked by AI score, not paid ads\n4. You buy at the verified best price\n\nWant to try it? Use the search bar at the top of the page!" },
+    { keys:['free','plan','pricing','cost','subscription','pro plan','team plan','upgrade','how much'],
+      reply:"We have three plans:\n\n  Free ($0/mo) — 10 searches/day, 3 alerts, 10 stores\n  Pro ($9/mo) — Unlimited searches, all 40+ stores, AI scoring, review summaries & coupon stacking\n  Team ($29/mo) — Up to 5 members, shared watchlists, API access\n\nMost Pro users save more in the first week than the monthly cost!" },
+    { keys:['safe','secure','privacy','data','personal','my account','login','information'],
+      reply:"Your privacy is our top priority:\n\n  We never access your retailer accounts\n  No purchase history collected\n  All data encrypted at rest (AES-256)\n  Never sold to third parties\n  GDPR & CCPA compliant\n\nWe only see the product you search for — nothing else." },
+    { keys:['uk','canada','australia','international','outside us','global','country','region'],
+      reply:"ShopAI currently supports:\n\n  United States\n  United Kingdom\n  Canada\n  Australia\n\nMore regions added monthly. Currency conversion and local tax estimates included for all supported regions." },
+    { keys:['cancel','refund','unsubscribe','stop subscription','end plan'],
+      reply:"You can cancel anytime from Account Settings > Billing > Cancel Plan.\n\nYou keep full access until the end of your billing period. No cancellation fees, no questions asked." },
+    { keys:['extension','browser','plugin','chrome','firefox','edge','safari'],
+      reply:"Our browser extension works on Chrome, Firefox, and Edge. It:\n\n  Auto-compares prices on any product page\n  Shows deal score without leaving the site\n  One-click adds items to your watchlist\n\nSearch 'ShopAI' in your browser's extension store!" },
+    { keys:['app','mobile','ios','android','phone','iphone'],
+      reply:"The ShopAI mobile app is available on iOS and Android:\n\n  Full search and comparison on the go\n  Push notifications for price drops\n  Barcode scanner to find deals in-store\n  Syncs watchlist across all devices" },
+    { keys:['api','developer','integrate','webhook','developer plan'],
+      reply:"Our API is available on the Team plan (1,000 req/day) and Enterprise (custom limits).\n\nIt supports product search, price lookup, and alert management via REST. Docs at shopai.io/docs." },
+    { keys:['affiliate','commission','bias','objective','neutral','honest'],
+      reply:"We earn a small affiliate commission when you click through and buy. This has zero effect on rankings — deals are always sorted by AI score only, never by commission rates. Our reputation depends on giving you genuinely great deals." },
+    { keys:['thank','thanks','great','awesome','perfect','helpful','brilliant','love it'],
+      reply:"You're very welcome! Happy to help you save more money.\n\nIs there anything else you'd like to know about ShopAI?" },
+    { keys:['bye','goodbye','see you','later','cya','ttyl'],
+      reply:"Happy shopping! Remember — your next great deal is just a search away. Come back anytime!" }
+  ];
+
+  function getReply(input) {
+    var lower = input.toLowerCase();
+    for (var i = 0; i < rules.length; i++) {
+      var rule = rules[i];
+      for (var j = 0; j < rule.keys.length; j++) {
+        if (lower.indexOf(rule.keys[j]) !== -1) return rule.reply;
+      }
+    }
+    return "I'm not sure about that, but I can help you with:\n\n  Finding deals & comparing prices\n  Setting price drop alerts\n  Understanding AI deal scores\n  Choosing the right plan\n  Privacy & security questions\n\nWhat would you like to explore?";
+  }
+
+  function nowStr() {
+    var d = new Date();
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
+  function appendMsg(text, isUser) {
+    var msg  = document.createElement('div');
+    msg.className = 'msg' + (isUser ? ' user' : '');
+
+    var av  = document.createElement('div');
+    av.className = 'msg-av';
+    av.textContent = isUser ? 'U' : 'AI';
+
+    var wrap = document.createElement('div');
+    wrap.className = 'msg-wrap';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+
+    var time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = nowStr();
+
+    wrap.appendChild(bubble);
+    wrap.appendChild(time);
+
+    if (isUser) { msg.appendChild(wrap); msg.appendChild(av); }
+    else        { msg.appendChild(av);   msg.appendChild(wrap); }
+
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function showTyping() {
+    var t = document.createElement('div');
+    t.className = 'msg'; t.id = 'typing-row';
+    var av = document.createElement('div'); av.className = 'msg-av'; av.textContent = 'AI';
+    var ind = document.createElement('div'); ind.className = 'typing-indicator';
+    ind.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    t.appendChild(av); t.appendChild(ind);
+    chatMessages.appendChild(t);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function hideTyping() {
+    var t = document.getElementById('typing-row');
+    if (t) t.remove();
+  }
+
+  function sendMessage(text) {
+    var trimmed = text.trim();
+    if (!trimmed) return;
+    appendMsg(trimmed, true);
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    quickReplies.style.display = 'none';
+    showTyping();
+    var delay = 600 + Math.random() * 700;
+    setTimeout(function () {
+      hideTyping();
+      appendMsg(getReply(trimmed), false);
+    }, delay);
+  }
+
+  chatSend.addEventListener('click', function () { sendMessage(chatInput.value); });
+  chatInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); }
+  });
+  chatInput.addEventListener('input', function () {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 90) + 'px';
+  });
+
+  quickReplies.querySelectorAll('.qr-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      sendMessage(btn.getAttribute('data-msg'));
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
