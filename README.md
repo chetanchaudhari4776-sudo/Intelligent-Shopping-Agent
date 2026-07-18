@@ -1,2 +1,28 @@
 # Intelligent-Shopping-Agent
+
 Intelligent Shopping Agent is an AI-powered shopping assistant built using IBM watsonx.ai, IBM Orchestrate, and RAG. It provides personalized product recommendations, price comparisons, fake review detection, price prediction, and smart shopping insights across multiple e-commerce platforms.
+
+# Features
+- Knowledge Retrieval
+- Concept Explanation
+- Troubleshooting Support
+- Interactive User Experience
+
+  
+- ## Technologies Used
+- watsonx Orchestrate
+- HTML
+- CSS
+- JavaScript
+
+  ## Project Files
+- index.html
+- ProblemStatement11.pdf
+- ProjectPresentation.ppt
+
+  ## Problem Statement
+  Problem Statement No. 11:
+  Intelligent-Shopping-Agent
+
+  ## Author
+Chetan Chaudhari
